@@ -4,6 +4,12 @@
   const seasons = [...document.querySelectorAll("[data-season]")];
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   const reveals = new Set();
+  let archiveScrollFrame = 0;
+  function stopArchiveScroll() {
+    cancelAnimationFrame(archiveScrollFrame);
+    if (archiveScrollFrame) window.scrollTo({ top: window.scrollY, behavior: "instant" });
+    archiveScrollFrame = 0;
+  }
   function cancelReveals() {
     reveals.forEach(animation => animation.cancel());
     reveals.clear();
@@ -31,13 +37,19 @@
       cancelReveals();
     }
   }
-  const motionChanged = () => { if (reducedMotion.matches) cancelReveals(); };
+  const motionChanged = () => {
+    if (reducedMotion.matches) {
+      cancelReveals();
+      stopArchiveScroll();
+    }
+  };
   if (typeof reducedMotion.addEventListener === "function") {
     reducedMotion.addEventListener("change", motionChanged);
   } else if (typeof reducedMotion.addListener === "function") {
     reducedMotion.addListener(motionChanged);
   }
   function filterArchive(id, announce = true, animate = true) {
+    stopArchiveScroll();
     cancelReveals();
     if (!filterLinks.some(link => link.dataset.filter === id)) id = null;
     seasons.forEach(section => { section.hidden = id !== "all" && section.dataset.season !== id; });
@@ -53,11 +65,23 @@
     }
     if (animate) revealCards();
   }
+  function scrollToCollection() {
+    archiveScrollFrame = requestAnimationFrame(() => {
+      const section = seasons.find(section => !section.hidden);
+      if (!section) return;
+      const toolbar = document.querySelector(".archive-heading");
+      const toolbarHeight = toolbar ? toolbar.getBoundingClientRect().height : 0;
+      const heading = section.querySelector(".section-header") || section;
+      const top = window.scrollY + heading.getBoundingClientRect().top - toolbarHeight - 18;
+      window.scrollTo({ top: Math.max(0, top), behavior: reducedMotion.matches ? "auto" : "smooth" });
+    });
+  }
   filterLinks.forEach(link => link.addEventListener("click", event => {
     event.preventDefault();
     const id = link.getAttribute("aria-current") === "true" ? null : link.dataset.filter;
     filterArchive(id);
     history.replaceState(null, "", `#${id || "archive"}`);
+    if (id) scrollToCollection();
   }));
   if (filterLinks.length) {
     // Every fresh page starts closed; a collection opens only on selection.

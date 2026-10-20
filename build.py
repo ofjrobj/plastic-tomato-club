@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build the Plastic Tomato Club archive with Python's standard library."""
 from pathlib import Path
+from copy import deepcopy
 from html import escape
 from hashlib import sha256
 from urllib.parse import urlparse
@@ -11,7 +12,7 @@ import shutil
 ROOT = Path(__file__).resolve().parent
 STATIC_VERSIONS = {
     name: sha256((ROOT / name).read_bytes()).hexdigest()[:12]
-    for name in ("styles.css", "site.js")
+    for name in ("styles.css", "project-book.css", "site.js", "ornament.png")
 }
 parser = argparse.ArgumentParser()
 parser.add_argument("--manifest", type=Path, default=ROOT / "content.json")
@@ -66,6 +67,7 @@ def image_markup(asset_id, base, alt, eager=False, css_class=""):
 
 
 def shell(title, description, body, base="./", project=False):
+    book_style = f'<link rel="stylesheet" href="{base}project-book.css?v={STATIC_VERSIONS["project-book.css"]}">' if project else ""
     return f'''<!doctype html>
 <html lang="en">
 <head>
@@ -77,6 +79,7 @@ def shell(title, description, body, base="./", project=False):
   <title>{e(title)} — Plastic Tomato Club</title>
   <link rel="icon" href="{base}favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="{base}styles.css?v={STATIC_VERSIONS["styles.css"]}">
+  {book_style}
   <script src="{base}site.js?v={STATIC_VERSIONS["site.js"]}" defer></script>
 </head>
 <body class="{'project-page' if project else 'archive-page'}">
@@ -114,7 +117,6 @@ def home():
           <header class="section-header"><h2 id="label-{gid}">{e(season(group["title"]))}</h2><span>{len(group["projects"]):02d} projects</span></header>
           <div class="project-grid">{''.join(rendered)}</div>
         </section>''')
-    hero_id = first_image(data["home"]["content"])
     # This is the original project's announcement, presented in regular case.
     announcement = ("Our project concluded in April, and we are currently discussing a new one. "
                     "In the meantime, we will be sharing our individual projects, so please stay tuned.")
@@ -130,7 +132,7 @@ def home():
       <div class="hero-foot">
         <p class="hero-note">A collection of<br>eleven projects.</p>
         <div class="hero-intro"><p>{announcement}</p></div>
-        <a class="hero-object" href="./red-horse/" aria-label="Explore Year of the Red Horse">{image_markup(hero_id, "./", "Red horse ornament, Plastic Tomato Club", eager=True)}</a>
+        <div class="hero-object" aria-hidden="true"><img src="./ornament.png?v={STATIC_VERSIONS["ornament.png"]}" width="1254" height="1254" alt="" decoding="async"></div>
       </div>
     </section>
     <div class="archive-heading" id="archive"><p>Selected collections</p><nav class="filter-nav" aria-label="Filter projects by season">
@@ -188,7 +190,63 @@ def project_page(p):
             return f'<p class="gallery-text"><a class="text-link" href="{e(url)}">{e(node["text"] or "Project archive")}</a></p>'
         raise ValueError(f"Unknown content node type: {kind}")
 
-    gallery = "\n".join(render(n) for n in p["content"])
+    # Turn the original sequence into quiet, two-page editorial spreads.
+    # Media stays in its original order, including videos and grouped images.
+    content = deepcopy(p["content"])
+    cover_intro = []
+    while content and content[0]["type"] in ("text", "heading"):
+        cover_intro.append(content.pop(0))
+
+    def take_cover(nodes):
+        for i, node in enumerate(nodes):
+            if node["type"] == "image":
+                return nodes.pop(i)
+            if node["type"] == "group":
+                cover = take_cover(node["children"])
+                if cover is not None:
+                    if not node["children"]:
+                        nodes.pop(i)
+                    return cover
+        return None
+
+    cover = take_cover(content)
+    idx = ordered.index(p)
+    title = f'<header class="project-title"><span class="project-count">{idx+1:02d} / 11</span><h1>{e(p["title"])}</h1><p>{e(season(p["season"]))}</p></header>'
+    cover_text = "".join(render(node) for node in cover_intro)
+    cover_image = render(cover) if cover else ""
+    spreads = [f'''<section class="book-spread book-cover">
+      <div class="book-page book-cover-copy" data-items="1">{title}{cover_text}</div>
+      <div class="book-page book-cover-image" data-items="1">{cover_image}</div>
+    </section>''']
+
+    def spread(nodes, source_group=None):
+        split = (len(nodes) + 1) // 2
+        pages = (nodes[:split], nodes[split:])
+        group_attr = f' data-original-group="{source_group}"' if source_group else ""
+        page_html = []
+        for page in pages:
+            empty_class = " book-page-empty" if not page else ""
+            aria = ' aria-hidden="true"' if not page else ""
+            page_html.append(f'<div class="book-page{empty_class}"{aria} data-items="{len(page)}">{"".join(render(n) for n in page)}</div>')
+        return f'<section class="book-spread"{group_attr}>{"".join(page_html)}</section>'
+
+    pending = []
+    for group_number, node in enumerate(content, 1):
+        if node["type"] == "group":
+            if pending:
+                spreads.append(spread(pending))
+                pending = []
+            children = node["children"]
+            for start in range(0, len(children), 4):
+                spreads.append(spread(children[start:start+4], group_number))
+        else:
+            pending.append(node)
+            if len(pending) == 2:
+                spreads.append(spread(pending))
+                pending = []
+    if pending:
+        spreads.append(spread(pending))
+    gallery = "\n".join(spreads)
     nav = []
     for group in groups:
         links = []
@@ -197,7 +255,6 @@ def project_page(p):
             current = ' aria-current="page"' if slug == p["slug"] else ""
             links.append(f'<li><a href="../{e(slug)}/"{current}>{e(other["title"])}</a></li>')
         nav.append(f'<div class="index-group"><p>{e(season(group["title"]))}</p><ul>{"".join(links)}</ul></div>')
-    idx = ordered.index(p)
     nextp = ordered[(idx+1) % len(ordered)]
     previous = ordered[(idx-1) % len(ordered)]
     return shell(p["title"], f'{p["title"]}, {season(p["season"])}. A Plastic Tomato Club project.', f'''
@@ -208,13 +265,12 @@ def project_page(p):
     </header>
     <main id="main" class="project-layout">
       <aside class="project-sidebar">
-        <details class="project-index" open>
+        <details class="project-index">
           <summary>Project index</summary>
           <nav aria-label="All projects">{''.join(nav)}</nav>
         </details>
       </aside>
       <article class="project-main">
-        <header class="project-title"><span class="project-count">{idx+1:02d} / 11</span><h1>{e(p["title"])}</h1><p>{e(season(p["season"]))}</p></header>
         <div class="project-gallery">{gallery}</div>
         <nav class="project-pagination" aria-label="Adjacent projects">
           <a href="../{e(previous["slug"])}/"><span>Previous project</span>{e(previous["title"])}</a>

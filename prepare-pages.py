@@ -11,7 +11,7 @@ import shutil
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "_site"
 manifest = json.loads((ROOT / "content.json").read_text())
-files = ["index.html", "styles.css", "site.js", "favicon.svg", "robots.txt", ".nojekyll"]
+files = ["index.html", "styles.css", "project-book.css", "site.js", "favicon.svg", "ornament.png", "robots.txt", ".nojekyll"]
 directories = ["assets", "2025"] + [project["slug"] for project in manifest["projects"]]
 if OUTPUT.exists():
     shutil.rmtree(OUTPUT)
