@@ -134,10 +134,10 @@ def home():
       </div>
     </section>
     <div class="archive-heading" id="archive"><p>Selected collections</p><nav class="filter-nav" aria-label="Filter projects by season">
-      <a href="#all" data-filter="all" aria-expanded="false" aria-controls="2026 2025-fw 2025-ss">All <span>11</span></a>
-      <a href="#2026" data-filter="2026" aria-expanded="false" aria-controls="2026">2026 <span>02</span></a>
-      <a href="#2025-fw" data-filter="2025-fw" aria-expanded="false" aria-controls="2025-fw">2025 F/W <span>05</span></a>
-      <a href="#2025-ss" data-filter="2025-ss" aria-expanded="false" aria-controls="2025-ss">2025 S/S <span>04</span></a>
+      <a href="#all" data-filter="all" aria-expanded="false" aria-controls="2026 2025-fw 2025-ss">All</a>
+      <a href="#2026" data-filter="2026" aria-expanded="false" aria-controls="2026">2026</a>
+      <a href="#2025-fw" data-filter="2025-fw" aria-expanded="false" aria-controls="2025-fw">2025 F/W</a>
+      <a href="#2025-ss" data-filter="2025-ss" aria-expanded="false" aria-controls="2025-ss">2025 S/S</a>
     </nav></div>
     <p class="filter-status sr-only" role="status"></p>
     <div class="catalogue">{''.join(cards)}</div>
