@@ -42,7 +42,11 @@ def season(title):
 
 
 def asset_url(asset_id, base):
-    return base + "assets/" + Path(assets[asset_id]["local_path"]).name
+    asset = assets[asset_id]
+    url = base + "assets/" + Path(asset["local_path"]).name
+    # Replaced originals need a new URL so returning visitors see the update.
+    revision = asset.get("original_sha256")
+    return url + "?v=" + revision[:12] if revision else url
 
 
 def image_markup(asset_id, base, alt, eager=False, css_class=""):
