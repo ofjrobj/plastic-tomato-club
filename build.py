@@ -110,7 +110,7 @@ def home():
                 <div class="card-caption"><span class="card-number">{number:02d}</span><h3>{e(p["title"])}</h3><span class="card-season">{e(season(p["season"]))}</span></div>
               </a>
             </article>''')
-        cards.append(f'''<section class="season-section" id="{gid}" data-season="{gid}" aria-labelledby="label-{gid}">
+        cards.append(f'''<section class="season-section" id="{gid}" data-season="{gid}" aria-labelledby="label-{gid}" hidden>
           <header class="section-header"><h2 id="label-{gid}">{e(season(group["title"]))}</h2><span>{len(group["projects"]):02d} projects</span></header>
           <div class="project-grid">{''.join(rendered)}</div>
         </section>''')
@@ -134,13 +134,14 @@ def home():
       </div>
     </section>
     <div class="archive-heading" id="archive"><p>Selected collections</p><nav class="filter-nav" aria-label="Filter projects by season">
-      <a href="#all" data-filter="all" aria-current="true">All <span>11</span></a>
-      <a href="#2026" data-filter="2026">2026 <span>02</span></a>
-      <a href="#2025-fw" data-filter="2025-fw">2025 F/W <span>05</span></a>
-      <a href="#2025-ss" data-filter="2025-ss">2025 S/S <span>04</span></a>
+      <a href="#all" data-filter="all" aria-expanded="false" aria-controls="2026 2025-fw 2025-ss">All <span>11</span></a>
+      <a href="#2026" data-filter="2026" aria-expanded="false" aria-controls="2026">2026 <span>02</span></a>
+      <a href="#2025-fw" data-filter="2025-fw" aria-expanded="false" aria-controls="2025-fw">2025 F/W <span>05</span></a>
+      <a href="#2025-ss" data-filter="2025-ss" aria-expanded="false" aria-controls="2025-ss">2025 S/S <span>04</span></a>
     </nav></div>
     <p class="filter-status sr-only" role="status"></p>
     <div class="catalogue">{''.join(cards)}</div>
+    <noscript><style>.archive-page .season-section[hidden]{{display:block!important}}</style></noscript>
   </main>
   {footer()}
 ''')

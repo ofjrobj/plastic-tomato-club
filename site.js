@@ -39,9 +39,10 @@
   }
   function filterArchive(id, announce = true, animate = true) {
     cancelReveals();
-    if (!filterLinks.some(link => link.dataset.filter === id)) id = "all";
+    if (!filterLinks.some(link => link.dataset.filter === id)) id = null;
     seasons.forEach(section => { section.hidden = id !== "all" && section.dataset.season !== id; });
     filterLinks.forEach(link => {
+      link.setAttribute("aria-expanded", String(link.dataset.filter === id));
       if (link.dataset.filter === id) link.setAttribute("aria-current", "true");
       else link.removeAttribute("aria-current");
     });
@@ -54,13 +55,17 @@
   }
   filterLinks.forEach(link => link.addEventListener("click", event => {
     event.preventDefault();
-    const id = link.dataset.filter;
+    const id = link.getAttribute("aria-current") === "true" ? null : link.dataset.filter;
     filterArchive(id);
-    history.replaceState(null, "", `#${id}`);
+    history.replaceState(null, "", `#${id || "archive"}`);
   }));
   if (filterLinks.length) {
-    filterArchive(location.hash.slice(1), false, false);
-    addEventListener("hashchange", () => filterArchive(location.hash.slice(1)));
+    // Every fresh page starts closed; a collection opens only on selection.
+    filterArchive(null, false, false);
+    addEventListener("hashchange", () => {
+      const id = location.hash.slice(1);
+      if (filterLinks.some(link => link.dataset.filter === id)) filterArchive(id);
+    });
   }
 
   const index = document.querySelector(".project-index");
