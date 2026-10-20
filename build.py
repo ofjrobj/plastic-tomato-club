@@ -132,7 +132,7 @@ def home():
       <div class="hero-foot">
         <p class="hero-note">A collection of<br>eleven projects.</p>
         <div class="hero-intro"><p>{announcement}</p></div>
-        <div class="hero-object" aria-hidden="true"><img src="./ornament.png?v={STATIC_VERSIONS["ornament.png"]}" width="1254" height="1254" alt="" decoding="async"></div>
+        <div class="hero-object hero-ornament" style="--ornament-image:url('./ornament.png?v={STATIC_VERSIONS["ornament.png"]}')" aria-hidden="true"><img src="./ornament.png?v={STATIC_VERSIONS["ornament.png"]}" width="1254" height="1254" alt="" decoding="async"></div>
       </div>
     </section>
     <div class="archive-heading" id="archive"><p>Selected collections</p><nav class="filter-nav" aria-label="Filter projects by season">
