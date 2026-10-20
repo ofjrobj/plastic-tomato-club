@@ -2,12 +2,17 @@
 """Build the Plastic Tomato Club archive with Python's standard library."""
 from pathlib import Path
 from html import escape
+from hashlib import sha256
 from urllib.parse import urlparse
 import argparse
 import json
 import shutil
 
 ROOT = Path(__file__).resolve().parent
+STATIC_VERSIONS = {
+    name: sha256((ROOT / name).read_bytes()).hexdigest()[:12]
+    for name in ("styles.css", "site.js")
+}
 parser = argparse.ArgumentParser()
 parser.add_argument("--manifest", type=Path, default=ROOT / "content.json")
 args = parser.parse_args()
@@ -71,8 +76,8 @@ def shell(title, description, body, base="./", project=False):
   <meta name="description" content="{e(description)}">
   <title>{e(title)} — Plastic Tomato Club</title>
   <link rel="icon" href="{base}favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="{base}styles.css">
-  <script src="{base}site.js" defer></script>
+  <link rel="stylesheet" href="{base}styles.css?v={STATIC_VERSIONS["styles.css"]}">
+  <script src="{base}site.js?v={STATIC_VERSIONS["site.js"]}" defer></script>
 </head>
 <body class="{'project-page' if project else 'archive-page'}">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -85,7 +90,7 @@ def shell(title, description, body, base="./", project=False):
 def footer(base="./"):
     return f'''<footer class="site-footer">
     <a class="footer-brand" href="{base}">Plastic Tomato Club</a>
-    <p>2025.07–2026.04</p>
+    <p>2025.07–2026.04<span class="footer-copyright">© 2026 Plastic Tomato Club. All rights reserved.</span></p>
     <a href="https://undecember27.wpcomstaging.com/">J Yoon’s portfolio</a>
   </footer>'''
 
@@ -124,7 +129,7 @@ def home():
       <h1 id="home-title"><span>Plastic</span><span>Tomato Club</span></h1>
       <div class="hero-foot">
         <p class="hero-note">A collection of<br>eleven projects.</p>
-        <div class="hero-intro"><p>{announcement}</p><a class="text-link" href="#archive">Browse the archive</a></div>
+        <div class="hero-intro"><p>{announcement}</p></div>
         <a class="hero-object" href="./red-horse/" aria-label="Explore Year of the Red Horse">{image_markup(hero_id, "./", "Red horse ornament, Plastic Tomato Club", eager=True)}</a>
       </div>
     </section>

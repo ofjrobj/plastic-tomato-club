@@ -27,7 +27,6 @@ button:disabled{cursor:default;opacity:.35}
 .hero-foot{display:grid;grid-template-columns:1fr 1fr .65fr;align-items:start;gap:5.5vw;margin-top:57px}
 .hero-note{font-size:12px;line-height:1.55;max-width:170px}
 .hero-intro{max-width:340px;font-size:14px;line-height:1.6}
-.hero-intro .text-link{display:inline-block;margin-top:23px}
 .text-link{border-bottom:1px solid currentColor;padding-bottom:3px;width:fit-content}
 .hero-object{justify-self:end;width:170px}
 .hero-object img{width:100%;aspect-ratio:1;object-fit:contain}
@@ -58,6 +57,7 @@ button:disabled{cursor:default;opacity:.35}
 .card-season{font-size:10px;color:var(--muted);white-space:nowrap}
 .site-footer{margin:0 var(--pad);padding:27px 0 30px;border-top:1px solid var(--ink);display:flex;justify-content:space-between;gap:20px;align-items:baseline;font-size:11px;color:var(--muted)}
 .footer-brand{font-size:14px;letter-spacing:-.035em;color:var(--ink)}
+.footer-copyright{display:block;margin-top:8px;font-size:10px;line-height:1.5}
 .project-top{position:relative}
 .project-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:clamp(40px,6vw,110px);padding:0 var(--pad)}
 .project-sidebar{padding-top:52px}
@@ -111,7 +111,7 @@ body.lightbox-open{overflow:hidden}
 @media(max-width:700px){
   .site-header{padding:18px 0;grid-template-columns:1fr auto;gap:15px}.header-archive{justify-self:end}.header-period{display:none}.wordmark{font-size:15px}
   .home-hero{padding-top:42px;padding-bottom:45px}.home-hero h1{font-size:clamp(54px,13.4vw,94px);letter-spacing:-.07em;line-height:.9}.home-hero h1 span+span{margin-top:1px}
-  .hero-foot{grid-template-columns:1fr 100px;gap:25px;margin-top:32px}.hero-note{display:none}.hero-intro{font-size:12px;line-height:1.55}.hero-intro .text-link{margin-top:18px}.hero-object{width:100px;margin-top:2px}
+  .hero-foot{grid-template-columns:1fr 100px;gap:25px;margin-top:32px}.hero-note{display:none}.hero-intro{font-size:12px;line-height:1.55}.hero-object{width:100px;margin-top:2px}
   .archive-heading{display:block;padding:20px 0 15px}.archive-heading>p{font-size:10px;margin-bottom:10px}.filter-nav{gap:0;justify-content:space-between;font-size:11px}.filter-nav a{min-height:36px;gap:5px}.filter-nav a span{font-size:8px;padding-top:8px}
   .season-section{padding:20px 0 48px}.section-header{margin-bottom:25px}.section-header h2{font-size:23px}.section-header>span{font-size:10px}
   .project-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px 16px}.project-card,.project-card:nth-child(2n),.project-card:nth-child(4n+3),.project-card:nth-child(4n+4){grid-column:auto;padding-top:0}.project-card:nth-child(2n){padding-top:48px}

@@ -2,7 +2,43 @@
   "use strict";
   const filterLinks = [...document.querySelectorAll("[data-filter]")];
   const seasons = [...document.querySelectorAll("[data-season]")];
-  function filterArchive(id, announce = true) {
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const reveals = new Set();
+  function cancelReveals() {
+    reveals.forEach(animation => animation.cancel());
+    reveals.clear();
+  }
+  function revealCards() {
+    if (reducedMotion.matches) return;
+    const cards = seasons.filter(section => !section.hidden)
+      .flatMap(section => [...section.querySelectorAll(".project-card-link")]);
+    if (!cards.length || typeof cards[0].animate !== "function") return;
+    try {
+      cards.forEach((card, index) => {
+        const animation = card.animate([
+          { clipPath: "inset(0 0 100% 0)", opacity: 0, transform: "translateY(-6px)" },
+          { clipPath: "inset(0 0 0% 0)", opacity: 1, transform: "translateY(0)" }
+        ], {
+          duration: 540,
+          delay: Math.min(index * 28, 100),
+          easing: "cubic-bezier(.22, .61, .36, 1)",
+          fill: "backwards"
+        });
+        reveals.add(animation);
+        animation.onfinish = animation.oncancel = () => reveals.delete(animation);
+      });
+    } catch {
+      cancelReveals();
+    }
+  }
+  const motionChanged = () => { if (reducedMotion.matches) cancelReveals(); };
+  if (typeof reducedMotion.addEventListener === "function") {
+    reducedMotion.addEventListener("change", motionChanged);
+  } else if (typeof reducedMotion.addListener === "function") {
+    reducedMotion.addListener(motionChanged);
+  }
+  function filterArchive(id, announce = true, animate = true) {
+    cancelReveals();
     if (!filterLinks.some(link => link.dataset.filter === id)) id = "all";
     seasons.forEach(section => { section.hidden = id !== "all" && section.dataset.season !== id; });
     filterLinks.forEach(link => {
@@ -14,6 +50,7 @@
       const count = seasons.filter(s => !s.hidden).reduce((n,s) => n+s.querySelectorAll(".project-card").length,0);
       status.textContent = `${count} projects shown.`;
     }
+    if (animate) revealCards();
   }
   filterLinks.forEach(link => link.addEventListener("click", event => {
     event.preventDefault();
@@ -22,7 +59,7 @@
     history.replaceState(null, "", `#${id}`);
   }));
   if (filterLinks.length) {
-    filterArchive(location.hash.slice(1), false);
+    filterArchive(location.hash.slice(1), false, false);
     addEventListener("hashchange", () => filterArchive(location.hash.slice(1)));
   }
 
