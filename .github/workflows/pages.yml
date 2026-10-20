@@ -1,0 +1,84 @@
+name: Publish Plastic Tomato Club
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: plastic-tomato-club-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      pages: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install the pinned image converter
+        run: python -m pip install --disable-pip-version-check -r requirements-bootstrap.txt
+
+      - name: Import missing public media and validate local assets
+        run: |
+          python bootstrap-assets.py
+          python bootstrap-assets.py --check
+
+      - name: Build the static archive
+        run: python build.py --manifest content.json
+
+      - name: Prepare and verify the public artifact
+        run: |
+          python prepare-pages.py
+
+      - name: Preserve imported media in this repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- assets-web asset-lock.json
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' \
+                -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+                commit -m "Preserve migrated portfolio media"
+            git push origin HEAD:main
+          fi
+          # GITHUB_TOKEN pushes do not trigger another push workflow.
+          # No force push: a concurrent source change must be rebuilt separately.
+
+      - name: Read Pages configuration
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Upload the public site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
