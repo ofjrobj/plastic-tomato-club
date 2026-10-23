@@ -93,8 +93,8 @@ def shell(title, description, body, base="./", project=False):
 def footer(base="./"):
     return f'''<footer class="site-footer">
     <a class="footer-brand" href="{base}">Plastic Tomato Club</a>
-    <p>2025.07–2026.04<span class="footer-copyright">© 2026 Plastic Tomato Club. All rights reserved.</span></p>
-    <a href="https://undecember27.wpcomstaging.com/">J Yoon’s portfolio</a>
+    <p class="footer-meta">2025.07–2026.04<span class="footer-copyright">© 2026 Plastic Tomato Club. All rights reserved.</span></p>
+    <p class="footer-team" lang="ko" aria-label="팀원">강지수 · 최신애 · 윤정연</p>
   </footer>'''
 
 
